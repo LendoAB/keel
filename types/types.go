@@ -9,6 +9,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -33,6 +34,10 @@ const KeelPollDefaultSchedule = "@every 1m"
 // KeelDigestAnnotation - digest annotation
 const KeelDigestAnnotation = "keel.sh/digest"
 
+// KeelNotificationChanAnnotation - optional notification to override
+// default notification channel(-s) per deployment/chart
+const KeelNotificationChanAnnotation = "keel.sh/notify"
+
 // KeelMinimumApprovalsLabel - min approvals
 const KeelMinimumApprovalsLabel = "keel.sh/approvals"
 
@@ -41,6 +46,10 @@ const KeelApprovalDeadlineLabel = "keel.sh/approvalDeadline"
 
 // KeelApprovalDeadlineDefault - default deadline in hours
 const KeelApprovalDeadlineDefault = 24
+
+// KeelPodTerminationGracePeriod - optional grace period during
+// pod termination
+const KeelPodTerminationGracePeriod = "keel.sh/gracePeriod"
 
 // Repository - represents main docker repository fields that
 // keel cares about
@@ -174,6 +183,50 @@ type EventNotification struct {
 	CreatedAt time.Time    `json:"createdAt"`
 	Type      Notification `json:"type"`
 	Level     Level        `json:"level"`
+	// Channels is an optional variable to override
+	// default channel(-s) when performing an update
+	Channels []string `json:"-"`
+}
+
+// ParseEventNotificationChannels - parses deployment annotations  or chart config
+// to get channel overrides
+func ParseEventNotificationChannels(annotations map[string]string) []string {
+	channels := []string{}
+	if annotations == nil {
+		return channels
+	}
+	chanStr, ok := annotations[KeelNotificationChanAnnotation]
+	if ok {
+		chans := strings.Split(chanStr, ",")
+		for _, c := range chans {
+			channels = append(channels, strings.TrimSpace(c))
+		}
+	}
+
+	return channels
+}
+
+// ParsePodTerminationGracePeriod - parses pod termination time in seconds
+// from a given map of annotations
+func ParsePodTerminationGracePeriod(annotations map[string]string) int64 {
+	grace := int64(5)
+	if annotations == nil {
+		return grace
+	}
+	graceStr, ok := annotations[KeelPodTerminationGracePeriod]
+	if ok {
+
+		g, err := strconv.Atoi(graceStr)
+		if err != nil {
+			return grace
+		}
+
+		if g > 0 && g < 600 {
+			return int64(g)
+		}
+	}
+
+	return grace
 }
 
 // Notification - notification types used by notifier

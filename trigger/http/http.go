@@ -15,7 +15,7 @@ import (
 	"github.com/keel-hq/keel/types"
 	"github.com/keel-hq/keel/version"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Opts - http server options
@@ -85,7 +85,8 @@ func (s *TriggerServer) registerRoutes(mux *mux.Router) {
 
 	// approvals
 	mux.HandleFunc("/v1/approvals", s.approvalsHandler).Methods("GET", "OPTIONS")
-	mux.HandleFunc("/v1/approvals/{id}", s.approvalDeleteHandler).Methods("DELETE", "OPTIONS")
+	// approving
+	mux.HandleFunc("/v1/approvals", s.approvalApproveHandler).Methods("POST", "OPTIONS")
 
 	// native webhooks handler
 	mux.HandleFunc("/v1/webhooks/native", s.nativeHandler).Methods("POST", "OPTIONS")

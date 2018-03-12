@@ -29,8 +29,9 @@ import (
 	"github.com/keel-hq/keel/util/codecs"
 	"github.com/keel-hq/keel/version"
 
-	// extensions
+	// notification extensions
 	_ "github.com/keel-hq/keel/extension/notification/hipchat"
+	_ "github.com/keel-hq/keel/extension/notification/mattermost"
 	_ "github.com/keel-hq/keel/extension/notification/slack"
 	_ "github.com/keel-hq/keel/extension/notification/webhook"
 
@@ -38,7 +39,7 @@ import (
 	_ "github.com/keel-hq/keel/bot/hipchat"
 	_ "github.com/keel-hq/keel/bot/slack"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // gcloud pubsub related config

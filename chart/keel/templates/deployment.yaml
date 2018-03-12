@@ -1,27 +1,42 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "name" . }}
+  name: {{ template "keel.fullname" . }}
   namespace: kube-system
   labels:
-    app: {{ template "name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app: {{ template "keel.name" . }}
+    chart: {{ template "keel.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "keel.name" . }}
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "name" . }}
+        app: {{ template "keel.name" . }}
+        release: {{ .Release.Name }}
     spec:
-      serviceAccountName: {{ template "name" . }}
+      serviceAccountName: {{ template "keel.name" . }}
       containers:
         - name: keel
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/bin/keel"]
+{{- if .Values.googleApplicationCredentials }}
+          volumeMounts:
+            - name: google
+              mountPath: "/google"
+              readOnly: true
+{{- end }}
           env:
+{{- if .Values.googleApplicationCredentials }}
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /google/google-application-credentials.json
+{{- end }}
 {{- if .Values.polling.enabled }}
             # Enable polling
             - name: POLL
@@ -48,6 +63,11 @@ spec:
             - name: WEBHOOK_ENDPOINT
               value: "{{ .Values.webhook.endpoint }}"
 {{- end }}
+{{- if .Values.mattermost.enabled }}
+            # Enable mattermost endpoint
+            - name: MATTERMOST_ENDPOINT
+              value: "{{ .Values.mattermost.endpoint }}"
+{{- end }}
 {{- if .Values.slack.enabled }}
             - name: SLACK_TOKEN
               value: "{{ .Values.slack.token }}"
@@ -55,6 +75,10 @@ spec:
               value: "{{ .Values.slack.channel }}"
             - name: SLACK_APPROVALS_CHANNEL
               value: "{{ .Values.slack.approvals_channel }}"
+  {{- if .Values.slack.bot_name }}
+            - name: SLACK_BOT_NAME
+              value: "{{ .Values.slack.bot_name }}"
+  {{- end }}
 {{- end }}
 {{- if .Values.hipchat.enabled }}
             # Enable hipchat approvials and notification
@@ -70,6 +94,11 @@ spec:
               value: "{{ .Values.hipchat.user_name }}"
             - name: HIPCHAT_APPROVALS_PASSWORT
               value: "{{ .Values.hipchat.password }}"
+{{- end }}
+{{- if .Values.debug }}
+            # Enable debug logging
+            - name: DEBUG
+              value: "1"
 {{- end }}
           ports:
             - containerPort: 9300
@@ -90,17 +119,33 @@ spec:
             - name: KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "name" . }}-webhookrelay
+                  name: {{ template "keel.name" . }}-webhookrelay
                   key: key
             - name: SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "name" . }}-webhookrelay
+                  name: {{ template "keel.name" . }}-webhookrelay
                   key: secret
             - name: BUCKET
               value: "{{ .Values.webhookRelay.bucket }}"
           resources:
 {{ toYaml .Values.resources | indent 12 }}
 {{- end }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+{{- if .Values.googleApplicationCredentials }}
+      volumes:
+        - name: google
+          secret:
+            secretName: {{ template "keel.name" . }}-google
+{{- end }}

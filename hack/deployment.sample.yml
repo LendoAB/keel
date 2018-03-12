@@ -23,6 +23,9 @@ spec:
             #   value: "1"
             - name: PUBSUB
               value: "1"
+            # how to setup : https://cloud.google.com/kubernetes-engine/docs/tutorials/authenticating-to-cloud-platform  
+            # - name: GOOGLE_APPLICATION_CREDENTIALS 
+            #   value: ""  
             # Enable/disable Helm provider
             # - name: HELM_PROVIDER
             #   value: "1"
@@ -48,6 +51,8 @@ spec:
             #   value: "111111_2222222"
             # - name: HIPCHAT_APPROVALS_PASSWORT
             #   value: "pass"
+            # - name: MATTERMOST_ENDPOINT
+            #   value: "" 
           name: keel
           command: ["/bin/keel"]
           ports:

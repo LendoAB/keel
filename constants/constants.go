@@ -25,7 +25,15 @@ const (
 	EnvHipchatApprovalsBotName   = "HIPCHAT_APPROVALS_BOT_NAME"
 	EnvHipchatApprovalsPasswort  = "HIPCHAT_APPROVALS_PASSWORT"
 	EnvHipchatConnectionAttempts = "HIPCHAT_CONNECTION_ATTEMPTS"
+
+	// Mattermost webhook endpoint, see https://docs.mattermost.com/developer/webhooks-incoming.html
+	// for documentation on setting it up
+	EnvMattermostEndpoint = "MATTERMOST_ENDPOINT"
+	EnvMattermostName     = "MATTERMOST_USERNAME"
 )
 
 // EnvNotificationLevel - minimum level for notifications, defaults to info
 const EnvNotificationLevel = "NOTIFICATION_LEVEL"
+
+// KeelLogoURL - is a logo URL for bot icon
+const KeelLogoURL = "https://keel.sh/images/logo.png"
